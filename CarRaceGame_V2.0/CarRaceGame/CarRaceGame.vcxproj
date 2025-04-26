@@ -24,6 +24,7 @@
     <ProjectGuid>{36b43432-b6d5-49a0-bc2a-287b6787910e}</ProjectGuid>
     <RootNamespace>CarRaceGame</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>MidnightMotorist</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -159,6 +160,7 @@ xcopy "$(SolutionDir)Resources\*.*" "$(TargetDir)" /y /d /s</Command>
   <ItemGroup>
     <ClCompile Include="Car.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Lane.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="PlayerCar.cpp" />
@@ -166,6 +168,7 @@ xcopy "$(SolutionDir)Resources\*.*" "$(TargetDir)" /y /d /s</Command>
   <ItemGroup>
     <ClInclude Include="Car.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Lane.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerCar.h" />
   </ItemGroup>

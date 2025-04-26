@@ -5,7 +5,7 @@
 PlayerCar::PlayerCar(const Vector2f& pos, const float width, const float height, const Color4f& color, float screenWidth, float screenHeight)
 	: Car::Car(pos, width, height),
 	m_Color{ color },
-	m_Speed{ 400.f },
+	m_Speed{ 600.f },
 	m_ScreenWidth{ screenWidth },
 	m_ScreenHeight{ screenHeight }
 {
@@ -24,11 +24,12 @@ void PlayerCar::Draw() const
 
 	glPopMatrix();
 
+	// Hitbox
 	utils::SetColor(Color4f{ 1,0,0,1 });
 	utils::DrawRect(GetBounds());
 }
 
-void PlayerCar::Update(const Uint8* pStates, float elapsedSec)
+void PlayerCar::Update(const Uint8* pStates, float elapsedSec, float bottomBorderY, float topBorderY)
 {
 	if (pStates[SDL_SCANCODE_LEFT] || pStates[SDL_SCANCODE_A])
 	{
@@ -47,10 +48,10 @@ void PlayerCar::Update(const Uint8* pStates, float elapsedSec)
 		m_Position.y -= m_Speed * 0.7f * elapsedSec;
 	}
 
-	SetBounds();
+	SetBounds(bottomBorderY, topBorderY);
 }
 
-void PlayerCar::SetBounds()
+void PlayerCar::SetBounds(float bottomBorderY, float topBorderY)
 {
 	if (m_Position.x < m_Width / 2 + 1.f)
 	{
@@ -60,13 +61,13 @@ void PlayerCar::SetBounds()
 	{
 		m_Position.x = m_ScreenWidth - m_Width / 2 - 1.f;
 	}
-	if (m_Position.y < 1.f)
+	if (m_Position.y < bottomBorderY)
 	{
-		m_Position.y = 1.f;
+		m_Position.y = bottomBorderY;
 	}
-	if (m_Position.y > m_ScreenHeight - m_Height - 1.f)
+	if (m_Position.y > topBorderY - m_Height)
 	{
-		m_Position.y = m_ScreenHeight - m_Height - 1.f;
+		m_Position.y = topBorderY - m_Height;
 	}
 }
 
