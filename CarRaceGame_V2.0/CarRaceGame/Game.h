@@ -1,7 +1,7 @@
 #pragma once
 #include "BaseGame.h"
 #include <vector>
-#include "Car.h"
+#include "Lane.h"
 class PlayerCar;
 
 class Game : public BaseGame
@@ -28,7 +28,10 @@ public:
 private:
 	// variables
 	PlayerCar* m_PlayerCar;
-	std::vector<Car*> m_Cars;
+	std::vector<Lane> m_Lanes;
+	const int m_LaneNr;
+	const float m_BorderLineOffset;
+	const float m_LaneHeight;
 
 	// FUNCTIONS
 	void Initialize();

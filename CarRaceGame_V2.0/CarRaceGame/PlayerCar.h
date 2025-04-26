@@ -7,7 +7,7 @@ public:
 	explicit PlayerCar(const Vector2f& pos, const float width, const float height, const Color4f& color, float screenWidth, float screenHeight);
 
 	virtual void Draw() const override;
-	virtual void Update(const Uint8* pStates, float elapsedSec);
+	virtual void Update(const Uint8* pStates, float elapsedSec, float bottomBorderY, float topBorderY);
 
 private:
 	enum class Movement {
@@ -24,6 +24,6 @@ private:
 	float m_ScreenWidth;
 	float m_ScreenHeight;
 
-	void SetBounds();
+	void SetBounds(float bottomBorderY, float topBorderY);
 };
 

@@ -2,11 +2,16 @@
 #include "Game.h"
 #include "PlayerCar.h"
 #include <iostream>
+#include "utils.h"
 
-Game::Game( const Window& window ) 
+Game::Game(const Window& window)
 	:BaseGame{ window },
-	m_Cars{},
-	m_PlayerCar{}
+	m_PlayerCar{ new PlayerCar(Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 }, GetViewPort().width / 10,
+		GetViewPort().height / 10, Color4f{ 0.5f, 0.12f, 0.95f, 1 }, GetViewPort().width, GetViewPort().height) },
+	m_Lanes{},
+	m_LaneNr{ 5 },
+	m_BorderLineOffset{ GetViewPort().height / 40 },
+	m_LaneHeight{ (GetViewPort().height - 2 * m_BorderLineOffset) / m_LaneNr }
 {
 	Initialize();
 }
@@ -18,31 +23,26 @@ Game::~Game( )
 
 void Game::Initialize( )
 {
-	m_PlayerCar = new PlayerCar(Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 }, GetViewPort().width / 15, 
-		GetViewPort().height / 15, Color4f{ 0.5f, 0.12f, 0.95f, 1 }, GetViewPort().width, GetViewPort().height);
-
-	for (int i{}; i < 4; ++i)
+	m_Lanes.reserve(m_LaneNr);
+	for (int i{}; i < m_LaneNr; ++i)
 	{
-		m_Cars.push_back(new Car(Vector2f{ GetViewPort().width * 0.8f, GetViewPort().height / 7 + i * GetViewPort().height / 4 }, 
-			GetViewPort().width / 15, GetViewPort().height / 15));
+		if (i == 0 || i == m_LaneNr - 1)
+		{
+			m_Lanes.push_back(Lane(Vector2f{ GetViewPort().width + 50.f, m_BorderLineOffset + m_LaneHeight / 2 + i * m_LaneHeight },
+				m_LaneHeight * 0.95f, m_LaneHeight * 0.55f, 1.5f));
+		}
+		else
+		{
+			m_Lanes.push_back(Lane(Vector2f{ GetViewPort().width + 50.f, m_BorderLineOffset + m_LaneHeight / 2 + i * m_LaneHeight },
+				m_LaneHeight * 0.95f, m_LaneHeight * 0.6f, 2.f));
+		}
 	}
 }
 
-void Game::Cleanup( )
+void Game::Cleanup()
 {
 	delete m_PlayerCar;
 	m_PlayerCar = nullptr;
-
-	for (Car* pCar : m_Cars)
-	{
-		if (pCar != nullptr)
-		{
-			delete pCar;
-			pCar = nullptr;
-		}
-		
-	}
-	m_Cars.clear();
 }
 
 void Game::Update( float elapsedSec )
@@ -50,34 +50,29 @@ void Game::Update( float elapsedSec )
 	// Check keyboard state
 	const Uint8 *pStates = SDL_GetKeyboardState( nullptr );
 
-	for (size_t i{};i<m_Cars.size();++i)
+	for (size_t i{}; i < m_Lanes.size(); ++i)
 	{
-		if (m_Cars[i] != nullptr)
-		{
-			m_Cars[i]->Update(elapsedSec);
-
-			if (m_Cars[i]->GetBounds().left < -m_Cars[i]->GetBounds().width)
-			{
-				delete m_Cars[i];
-				m_Cars[i] = nullptr;
-			}
-		}
+		m_Lanes[i].HandleCars(elapsedSec);
 	}
-	m_PlayerCar->Update(pStates, elapsedSec);
+	
+	m_PlayerCar->Update(pStates, elapsedSec, m_BorderLineOffset, GetViewPort().height - m_BorderLineOffset);
 
 }
 
 void Game::Draw( ) const
 {
 	ClearBackground( );
-	for (const Car* pCar : m_Cars) 
+	
+	for (size_t i{}; i < m_Lanes.size(); ++i)
 	{
-		if (pCar != nullptr)
-		{
-			pCar->Draw();
-		}
-		
+		m_Lanes[i].Draw();
 	}
+
+
+	utils::SetColor(Color4f{ 1,0,1,1 });
+	utils::DrawLine(Vector2f{ 0.f, m_BorderLineOffset }, Vector2f{ GetViewPort().width, m_BorderLineOffset }, 3);
+	utils::DrawLine(Vector2f{ 0.f, GetViewPort().height - m_BorderLineOffset }, Vector2f{ GetViewPort().width, GetViewPort().height - m_BorderLineOffset }, 3);
+
 	m_PlayerCar->Draw();
 }
 
