@@ -1,8 +1,0 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (CarRaceGame.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  Lane.cpp
-  CarRaceGame.vcxproj -> C:\Users\danie\OneDrive\Documents\GitHub\CarRaceGame\CarRaceGame_V2.0\x64\Debug\MidnightMotorist.exe
-  0 File(s) copied
-  0 File(s) copied
-  0 File(s) copied
-  0 File(s) copied
-  0 File(s) copied

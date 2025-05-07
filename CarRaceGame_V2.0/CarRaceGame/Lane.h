@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 class Car;
+class PlayerCar;
 
 class Lane
 {
@@ -9,7 +10,7 @@ public:
 	~Lane();
 
 	void Draw() const;
-	void HandleCars(float elapsedSec);
+	void HandleCars(float elapsedSec, PlayerCar* player, float& parallaxSpeed);
 
 	Vector2f GetDrawPosition() const;
 
