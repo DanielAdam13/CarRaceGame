@@ -3,15 +3,23 @@
 #include "PlayerCar.h"
 #include <iostream>
 #include "utils.h"
+#include "Texture.h"
 
 Game::Game(const Window& window)
 	:BaseGame{ window },
+	m_UIManager{},
 	m_PlayerCar{ new PlayerCar(Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 }, GetViewPort().width / 10,
 		GetViewPort().height / 10, Color4f{ 0.5f, 0.12f, 0.95f, 1 }, GetViewPort().width, GetViewPort().height) },
 	m_Lanes{},
 	m_LaneNr{ 5 },
 	m_BorderLineOffset{ GetViewPort().height / 40 },
-	m_LaneHeight{ (GetViewPort().height - 2 * m_BorderLineOffset) / m_LaneNr }
+	m_LaneHeight{ (GetViewPort().height - 2 * m_BorderLineOffset) / m_LaneNr },
+	m_SmallLines{},
+	m_ParallaxSpeed{ 1.f },
+	m_Pause{ new Texture("PAUSE", "Seedymoteldemo-LZl4.otf", 300, Color4f{1,0,1,1}) },
+	m_Score{ new Texture(std::to_string(m_UIManager.GetScore()), "game over.ttf", 60, Color4f{1,1,1,1}) },
+	m_Win{ new Texture("YOU WON", "Seedymoteldemo-LZl4.otf", 300, Color4f{1,0,1,1}) },
+	m_Paused{ false }
 {
 	Initialize();
 }
@@ -24,6 +32,7 @@ Game::~Game( )
 void Game::Initialize( )
 {
 	m_Lanes.reserve(m_LaneNr);
+
 	for (int i{}; i < m_LaneNr; ++i)
 	{
 		if (i == 0 || i == m_LaneNr - 1)
@@ -34,29 +43,78 @@ void Game::Initialize( )
 		else
 		{
 			m_Lanes.push_back(Lane(Vector2f{ GetViewPort().width + 50.f, m_BorderLineOffset + m_LaneHeight / 2 + i * m_LaneHeight },
-				m_LaneHeight * 0.95f, m_LaneHeight * 0.6f, 2.f));
+				m_LaneHeight * 0.95f, m_LaneHeight * 0.55f, 1.5f));
+		}
+
+		if (i % 2 == 0 && i != m_LaneNr - 1)
+		{
+			const float smallLineWidth{ GetViewPort().width / 25 };
+			const float smallLineHeight{ GetViewPort().height / 50 };
+
+			for (int k{}; k < 18; ++k)
+			{
+				m_SmallLines.push_back(Rectf{ 0.f + k * (smallLineWidth * 2.f), m_Lanes[i].GetDrawPosition().y + m_LaneHeight / 2, smallLineWidth, smallLineHeight });
+			}
 		}
 	}
+
+	m_SmallLines.reserve(20);
+	
 }
 
 void Game::Cleanup()
 {
 	delete m_PlayerCar;
 	m_PlayerCar = nullptr;
+	delete m_Pause;
+	m_Pause = nullptr;
+	delete m_Score;
+	m_Score = nullptr;
+	delete m_Win;
+	m_Win = nullptr;
+
+	m_SmallLines.clear();
 }
 
 void Game::Update( float elapsedSec )
 {
 	// Check keyboard state
 	const Uint8 *pStates = SDL_GetKeyboardState( nullptr );
-
-	for (size_t i{}; i < m_Lanes.size(); ++i)
+	
+	if (m_ParallaxSpeed < 6.f && !m_Paused)
 	{
-		m_Lanes[i].HandleCars(elapsedSec);
+		for (size_t i{}; i < m_Lanes.size(); ++i)
+		{
+			m_Lanes[i].HandleCars(elapsedSec, m_PlayerCar, m_ParallaxSpeed);
+		}
+
+		m_PlayerCar->Update(elapsedSec, m_ParallaxSpeed, pStates, m_BorderLineOffset, GetViewPort().height - m_BorderLineOffset);
+		
+
+		m_UIManager.Update(elapsedSec);
+
+
+		m_ParallaxSpeed += 0.06f * elapsedSec;
+
+		if (m_ParallaxSpeed >= 6.f)
+		{
+			m_ParallaxSpeed = 6.f;
+		}
+
+		for (size_t k{}; k < m_SmallLines.size(); ++k)
+		{
+			m_SmallLines[k].left -= (m_ParallaxSpeed + 0.5f);
+
+			if (m_SmallLines[k].left <= -m_SmallLines[k].width)
+			{
+				m_SmallLines[k].left += GetViewPort().width * 1.2f;
+			}
+		}
+
+		std::cout << m_ParallaxSpeed << std::endl;
 	}
 	
-	m_PlayerCar->Update(pStates, elapsedSec, m_BorderLineOffset, GetViewPort().height - m_BorderLineOffset);
-
+	
 }
 
 void Game::Draw( ) const
@@ -66,14 +124,38 @@ void Game::Draw( ) const
 	for (size_t i{}; i < m_Lanes.size(); ++i)
 	{
 		m_Lanes[i].Draw();
+
+		if (i == 1 || i == m_Lanes.size() - 2)
+		{
+			utils::SetColor(Color4f{ 1,0,1,1 });
+			utils::DrawLine(Vector2f{ 0.f, m_Lanes[i].GetDrawPosition().y + m_LaneHeight / 2}, Vector2f{ GetViewPort().width, m_Lanes[i].GetDrawPosition().y + m_LaneHeight / 2 }, 6);
+		}
 	}
 
+	for (size_t k{}; k < m_SmallLines.size(); ++k)
+	{
+		float smallLineX{ m_SmallLines[k].left};
+
+		utils::SetColor(Color4f{ 1,0,1,1 });
+		utils::FillRect(smallLineX, m_SmallLines[k].bottom, m_SmallLines[k].width, m_SmallLines[k].height);
+	}
 
 	utils::SetColor(Color4f{ 1,0,1,1 });
-	utils::DrawLine(Vector2f{ 0.f, m_BorderLineOffset }, Vector2f{ GetViewPort().width, m_BorderLineOffset }, 3);
-	utils::DrawLine(Vector2f{ 0.f, GetViewPort().height - m_BorderLineOffset }, Vector2f{ GetViewPort().width, GetViewPort().height - m_BorderLineOffset }, 3);
+	utils::DrawLine(Vector2f{ 0.f, m_BorderLineOffset }, Vector2f{ GetViewPort().width, m_BorderLineOffset }, 8);
+	utils::DrawLine(Vector2f{ 0.f, GetViewPort().height - m_BorderLineOffset }, Vector2f{ GetViewPort().width, GetViewPort().height - m_BorderLineOffset }, 8);
 
 	m_PlayerCar->Draw();
+
+	m_Score->Draw(Vector2f{ GetViewPort().width - 120.f, GetViewPort().height - 70.f });
+
+	if (m_ParallaxSpeed >= 5.5f)
+	{
+		m_Win->Draw(Vector2f{ 50.f, 50.f });
+	}
+	else if (m_Paused)
+	{
+		m_Pause->Draw(Vector2f{ 100.f, 50.f });
+	}
 }
 
 void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
@@ -83,20 +165,16 @@ void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
 
 void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 {
-	//std::cout << "KEYUP event: " << e.keysym.sym << std::endl;
-	//switch ( e.keysym.sym )
-	//{
-	//case SDLK_LEFT:
-	//	//std::cout << "Left arrow key released\n";
-	//	break;
-	//case SDLK_RIGHT:
-	//	//std::cout << "`Right arrow key released\n";
-	//	break;
-	//case SDLK_1:
-	//case SDLK_KP_1:
-	//	//std::cout << "Key 1 released\n";
-	//	break;
-	//}
+	switch ( e.keysym.sym )
+	{
+	case SDLK_ESCAPE:
+		if (!m_Paused)
+		{
+			m_Paused = true;
+		}
+		else m_Paused = false;
+		break;
+	}
 }
 
 void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )

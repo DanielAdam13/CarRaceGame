@@ -43,13 +43,27 @@ void Car::Draw() const
 	utils::FillRect(m_Position.x + m_Width * 0.65f - m_Width / 2, m_Position.y , m_Width / 4, m_Height);
 
 	// Hitbox
-	utils::SetColor(Color4f{ 1,0,0,1 });
-	utils::DrawRect(GetBounds());
+	//utils::SetColor(Color4f{ 1,0,0,1 });
+	//utils::DrawRect(GetBounds());
+	//utils::DrawRect(GetHitbox());
 }
 
-void Car::Update(float elapsedSec)
+void Car::Update(float elapsedSec, float& parallaxSpeed)
 {
-	m_Position.x -= m_Speed * elapsedSec;
+	float m_CurrentSpeed{ m_Speed * parallaxSpeed / 2.3f };
+
+	if (parallaxSpeed <= 1.5f)
+	{
+		m_CurrentSpeed = m_Speed * 1.5f / 2.3f;
+	}
+
+	m_Position.x -= m_CurrentSpeed * elapsedSec;
+	
+}
+
+Rectf Car::GetHitbox() const
+{
+	return Rectf(m_Position.x - m_Width / 5, m_Position.y + m_Height / 10, m_Width * 0.5f, m_Height * 0.8f);
 }
 
 Rectf Car::GetBounds() const

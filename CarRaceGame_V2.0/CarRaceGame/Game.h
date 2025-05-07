@@ -3,6 +3,8 @@
 #include <vector>
 #include "Lane.h"
 class PlayerCar;
+class Texture;
+#include "UIManager.h"
 
 class Game : public BaseGame
 {
@@ -27,11 +29,20 @@ public:
 
 private:
 	// variables
+	UIManager m_UIManager;
 	PlayerCar* m_PlayerCar;
 	std::vector<Lane> m_Lanes;
 	const int m_LaneNr;
 	const float m_BorderLineOffset;
 	const float m_LaneHeight;
+
+	std::vector<Rectf> m_SmallLines;
+	float m_ParallaxSpeed;
+
+	Texture* m_Pause;
+	Texture* m_Score;
+	Texture* m_Win;
+	bool m_Paused;
 
 	// FUNCTIONS
 	void Initialize();
