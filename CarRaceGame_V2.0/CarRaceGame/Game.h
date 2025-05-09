@@ -30,11 +30,12 @@ public:
 private:
 	// variables
 	UIManager m_UIManager;
-	PlayerCar* m_PlayerCar;
+	
 	std::vector<Lane> m_Lanes;
 	const int m_LaneNr;
 	const float m_BorderLineOffset;
 	const float m_LaneHeight;
+	PlayerCar* m_PlayerCar;
 
 	std::vector<Rectf> m_SmallLines;
 	float m_ParallaxSpeed;
@@ -43,6 +44,7 @@ private:
 	Texture* m_Score;
 	Texture* m_Win;
 	bool m_Paused;
+	bool m_GameWon;
 
 	// FUNCTIONS
 	void Initialize();

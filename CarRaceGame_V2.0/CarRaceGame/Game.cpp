@@ -8,18 +8,19 @@
 Game::Game(const Window& window)
 	:BaseGame{ window },
 	m_UIManager{},
-	m_PlayerCar{ new PlayerCar(Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 }, GetViewPort().width / 10,
-		GetViewPort().height / 10, Color4f{ 0.5f, 0.12f, 0.95f, 1 }, GetViewPort().width, GetViewPort().height) },
 	m_Lanes{},
 	m_LaneNr{ 5 },
 	m_BorderLineOffset{ GetViewPort().height / 40 },
 	m_LaneHeight{ (GetViewPort().height - 2 * m_BorderLineOffset) / m_LaneNr },
+	m_PlayerCar{ new PlayerCar(Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 }, m_LaneHeight * 0.95f, 
+		m_LaneHeight * 0.55f, Color4f{ 0.5f, 0.12f, 0.95f, 1 }, GetViewPort().width, GetViewPort().height) },
 	m_SmallLines{},
 	m_ParallaxSpeed{ 1.f },
-	m_Pause{ new Texture("PAUSE", "Seedymoteldemo-LZl4.otf", 300, Color4f{1,0,1,1}) },
+	m_Pause{ new Texture("LOL XD", "Seedymoteldemo-LZl4.otf", 300, Color4f{1,0,1,1}) },
 	m_Score{ new Texture(std::to_string(m_UIManager.GetScore()), "game over.ttf", 60, Color4f{1,1,1,1}) },
 	m_Win{ new Texture("YOU WON", "Seedymoteldemo-LZl4.otf", 300, Color4f{1,0,1,1}) },
-	m_Paused{ false }
+	m_Paused{ false },
+	m_GameWon{ false }
 {
 	Initialize();
 }
@@ -81,7 +82,7 @@ void Game::Update( float elapsedSec )
 	// Check keyboard state
 	const Uint8 *pStates = SDL_GetKeyboardState( nullptr );
 	
-	if (m_ParallaxSpeed < 6.f && !m_Paused)
+	if (!m_GameWon && !m_Paused)
 	{
 		for (size_t i{}; i < m_Lanes.size(); ++i)
 		{
@@ -90,31 +91,28 @@ void Game::Update( float elapsedSec )
 
 		m_PlayerCar->Update(elapsedSec, m_ParallaxSpeed, pStates, m_BorderLineOffset, GetViewPort().height - m_BorderLineOffset);
 		
-
 		m_UIManager.Update(elapsedSec);
-
 
 		m_ParallaxSpeed += 0.06f * elapsedSec;
 
-		if (m_ParallaxSpeed >= 6.f)
-		{
-			m_ParallaxSpeed = 6.f;
-		}
-
-		for (size_t k{}; k < m_SmallLines.size(); ++k)
-		{
-			m_SmallLines[k].left -= (m_ParallaxSpeed + 0.5f);
-
-			if (m_SmallLines[k].left <= -m_SmallLines[k].width)
-			{
-				m_SmallLines[k].left += GetViewPort().width * 1.2f;
-			}
-		}
-
 		std::cout << m_ParallaxSpeed << std::endl;
 	}
-	
-	
+
+	if (m_ParallaxSpeed >= 9.f)
+	{
+		m_ParallaxSpeed = 9.f;
+		m_GameWon = true;
+	}
+
+	for (size_t k{}; k < m_SmallLines.size(); ++k)
+	{
+		m_SmallLines[k].left -= (m_ParallaxSpeed + 0.5f);
+
+		if (m_SmallLines[k].left <= -m_SmallLines[k].width)
+		{
+			m_SmallLines[k].left += GetViewPort().width * 1.2f;
+		}
+	}
 }
 
 void Game::Draw( ) const
@@ -148,13 +146,13 @@ void Game::Draw( ) const
 
 	m_Score->Draw(Vector2f{ GetViewPort().width - 120.f, GetViewPort().height - 70.f });
 
-	if (m_ParallaxSpeed >= 5.5f)
+	if (m_GameWon)
 	{
-		m_Win->Draw(Vector2f{ 50.f, 50.f });
+		m_Win->Draw(Vector2f{ GetViewPort().width / 10, 50.f });
 	}
 	else if (m_Paused)
 	{
-		m_Pause->Draw(Vector2f{ 100.f, 50.f });
+		m_Pause->Draw(Vector2f{ GetViewPort().width / 4.5f, 50.f});
 	}
 }
 

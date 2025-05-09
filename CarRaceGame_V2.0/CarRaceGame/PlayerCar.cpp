@@ -44,7 +44,7 @@ void PlayerCar::Update(float elapsedSec, float& parallaxSpeed, const Uint8* pSta
 		m_AccuSec += elapsedSec;
 		m_Angle += 3.f;
 		m_Speed = 0.f;
-		parallaxSpeed -= 1.8f * elapsedSec;
+		parallaxSpeed -= 1.5f * elapsedSec;
 
 		if (parallaxSpeed <= 0.f)
 		{
@@ -65,12 +65,12 @@ void PlayerCar::Update(float elapsedSec, float& parallaxSpeed, const Uint8* pSta
 	{
 		m_InvincibilityTimer += elapsedSec;
 
-		if (m_InvincibilityTimer >= 3.f)
+		if (m_InvincibilityTimer >= 5.f)
 		{
 			m_Invicibility = false;
-			m_InvincibilityTimer -= 3.f;
+			m_InvincibilityTimer -= 5.f;
 		}
-		parallaxSpeed += 0.33f * elapsedSec;
+		parallaxSpeed += 0.3f * elapsedSec;
 	}
 
 
@@ -122,7 +122,7 @@ void PlayerCar::Hit()
 
 Rectf PlayerCar::GetHitbox() const
 {
-	return Rectf(m_Position.x - m_Width / 3, m_Position.y + m_Height / 10, m_Width * 0.5f, m_Height * 0.8f);
+	return Rectf(m_Position.x - m_Width / 3, m_Position.y + m_Height / 20, m_Width * 0.45f, m_Height * 0.9f);
 }
 
 void PlayerCar::SetBounds(float bottomBorderY, float topBorderY)
