@@ -63,7 +63,7 @@ void Car::Update(float elapsedSec, float& parallaxSpeed)
 
 Rectf Car::GetHitbox() const
 {
-	return Rectf(m_Position.x - m_Width / 5, m_Position.y + m_Height / 10, m_Width * 0.5f, m_Height * 0.8f);
+	return Rectf(m_Position.x - m_Width / 5, m_Position.y + m_Height / 20, m_Width * 0.45f, m_Height * 0.9f);
 }
 
 Rectf Car::GetBounds() const
