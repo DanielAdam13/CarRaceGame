@@ -35,7 +35,7 @@ Car::Car(const Vector2f& pos, const float width, const float height)
 	}
 }
 
-void Car::Draw() const
+void Car::Draw(const Vector2f& pos) const
 {
 	utils::SetColor(m_Color);
 	utils::FillRect(m_Position.x - m_Width / 2, m_Position.y + m_Height * 0.2f, m_Width, m_Height * 0.6f);
@@ -50,15 +50,14 @@ void Car::Draw() const
 
 void Car::Update(float elapsedSec, float& parallaxSpeed)
 {
-	float m_CurrentSpeed{ m_Speed * parallaxSpeed / 2.3f };
+	float m_CurrentSpeed{ m_Speed * parallaxSpeed / 3.7f };
 
 	if (parallaxSpeed <= 1.5f)
 	{
-		m_CurrentSpeed = m_Speed * 1.5f / 2.3f;
+		m_CurrentSpeed = m_Speed * 1.5f / 3.7f;
 	}
 
 	m_Position.x -= m_CurrentSpeed * elapsedSec;
-	
 }
 
 Rectf Car::GetHitbox() const

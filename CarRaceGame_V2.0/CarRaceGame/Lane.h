@@ -10,9 +10,12 @@ public:
 	~Lane();
 
 	void Draw() const;
-	void HandleCars(float elapsedSec, PlayerCar* player, float& parallaxSpeed);
+	void HandleCars(float elapsedSec, PlayerCar& player, float& parallaxSpeed);
 
 	Vector2f GetDrawPosition() const;
+
+	static int m_CarsBroken;
+	void ClearLane();
 
 private:
 	const Vector2f m_LanePosition;

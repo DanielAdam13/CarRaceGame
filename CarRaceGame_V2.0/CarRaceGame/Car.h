@@ -4,7 +4,7 @@ class Car
 public:
 	explicit Car(const Vector2f& pos, const float width, const float height);
 
-	virtual void Draw() const;
+	virtual void Draw(const Vector2f& pos = {}) const;
 	virtual void Update(float elapsedSec, float& parallaxSpeed);
 
 	virtual Rectf GetBounds() const;

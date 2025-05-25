@@ -4,6 +4,8 @@
 #include "PlayerCar.h"
 #include "utils.h"
 
+int Lane::m_CarsBroken{ 0 };
+
 Lane::Lane(const Vector2f& lanePosition, float carWidth, float carHeight, float minCarSpawnCooldown)
 	:m_LanePosition{ lanePosition },
 	m_Cars{},
@@ -37,7 +39,7 @@ void Lane::Draw() const
 	}
 }
 
-void Lane::HandleCars(float elapsedSec, PlayerCar* player, float& parallaxSpeed)
+void Lane::HandleCars(float elapsedSec, PlayerCar& player, float& parallaxSpeed)
 {
 	m_AccuSec += elapsedSec;
 
@@ -48,7 +50,7 @@ void Lane::HandleCars(float elapsedSec, PlayerCar* player, float& parallaxSpeed)
 
 		m_AccuSec -= m_RandomSec;
 
-		m_RandomSec = float((rand() % 15) / 10) + m_MinCarSpawnCooldown;
+		m_RandomSec = float((rand() % 20) / 10) + m_MinCarSpawnCooldown;
 
 		if (parallaxSpeed <= 1.5f)
 		{
@@ -60,28 +62,50 @@ void Lane::HandleCars(float elapsedSec, PlayerCar* player, float& parallaxSpeed)
 	{
 		if (m_Cars[i] != nullptr)
 		{
-			if (!player->IsInvincible())
+			if (!player.IsInvincible())
 			{
-				if (utils::IsOverlapping(m_Cars[i]->GetHitbox(), player->GetHitbox()))
+				if (utils::IsOverlapping(m_Cars[i]->GetHitbox(), player.GetHitbox()))
 				{
-					player->Hit();
+					if (player.IsUnreakable())
+					{
+						m_CarsBroken++;
+						delete m_Cars[i];
+						m_Cars[i] = nullptr;
+					}
+					else
+					{
+						player.Hit();
+					}
 				}
 			}
 
-			if (m_Cars[i]->GetBounds().left < -m_Cars[i]->GetBounds().width)
+			if (m_Cars[i] != nullptr)
 			{
-				delete m_Cars[i];
-				m_Cars[i] = nullptr;
+				if (m_Cars[i]->GetBounds().left < -m_Cars[i]->GetBounds().width)
+				{
+					delete m_Cars[i];
+					m_Cars[i] = nullptr;
+				}
+				else
+				{
+					m_Cars[i]->Update(elapsedSec, parallaxSpeed);
+				}
 			}
-			else
-			{
-				m_Cars[i]->Update(elapsedSec, parallaxSpeed);
-			}
+			
 		}
 	}
 }
 
 Vector2f Lane::GetDrawPosition() const
 {
-	return Vector2f(m_LanePosition);
+	return m_LanePosition;
+}
+
+void Lane::ClearLane()
+{
+	for (size_t i{}; i < m_Cars.size(); ++i)
+	{
+		delete m_Cars[i];
+		m_Cars[i] = nullptr;
+	}
 }

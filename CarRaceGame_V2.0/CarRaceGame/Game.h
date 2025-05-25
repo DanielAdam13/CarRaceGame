@@ -2,9 +2,10 @@
 #include "BaseGame.h"
 #include <vector>
 #include "Lane.h"
-class PlayerCar;
+#include "PlayerCar.h"
 class Texture;
-#include "UIManager.h"
+#include "ScoreCalculator.h"
+#include "PowerUpManager.h"
 
 class Game : public BaseGame
 {
@@ -29,25 +30,48 @@ public:
 
 private:
 	// variables
-	UIManager m_UIManager;
+	ScoreCalculator m_ScoreCalculator;
 	
 	std::vector<Lane> m_Lanes;
+	PowerUpManager m_PowerUpManager;
+
 	const int m_LaneNr;
 	const float m_BorderLineOffset;
 	const float m_LaneHeight;
-	PlayerCar* m_PlayerCar;
+
+	const Texture* m_PurpleHeart;
+
+	const Texture* m_InvinicibilityText;
+	const Texture* m_SmallStatusText;
+	const Texture* m_LifeStealStatusText;
+	const Texture* m_HealText;
+	PlayerCar m_PlayerCar;
 
 	std::vector<Rectf> m_SmallLines;
+
 	float m_ParallaxSpeed;
+	int m_SpeedKmh;
 
 	Texture* m_Pause;
 	Texture* m_Score;
+	const Texture* m_Kmh;
+	const Texture* m_DeathTexture;
+	const Texture* m_PressRTexture;
 	Texture* m_Win;
+	const Texture* m_GoalTutorial;
+	bool m_DrawGoalTutorial;
+	
+	const Texture* m_PauseTutorial;
+	
 	bool m_Paused;
 	bool m_GameWon;
+
+	int m_ScoreTextSize;
 
 	// FUNCTIONS
 	void Initialize();
 	void Cleanup( );
 	void ClearBackground( ) const;
+
+	void Restart();
 };
