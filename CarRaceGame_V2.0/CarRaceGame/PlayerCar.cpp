@@ -236,7 +236,7 @@ void PlayerCar::SetInvincibility()
 	m_InvincibilityTimer = 0.f;
 }
 
-void PlayerCar::SetUnbreakable(bool status)
+void PlayerCar::SetLifeSteal(bool status)
 {
 	m_LifeSteal = status;
 }
@@ -281,6 +281,10 @@ void PlayerCar::RestartPlayer(const Vector2f& pos)
 {
 	m_Hp = 3;
 	SetPosition(pos);
+	SetLifeSteal(false);
+	SetSize(1.f);
+	m_PoweredUpInvincibility = false;
+	m_Invicibility = false;
 }
 
 void PlayerCar::SetPosition(const Vector2f& pos)

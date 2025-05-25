@@ -26,7 +26,7 @@ Car::Car(const Vector2f& pos, const float width, const float height)
 		break;
 	case 3:
 		m_Color = Color4f{ 1, 0.7f, 0.3f, 1 };
-		m_Speed = 700.f;
+		m_Speed = 650.f;
 		break;
 	case 4:
 		m_Color = Color4f{ 0.55f, 1.f, 0.3f, 1 };

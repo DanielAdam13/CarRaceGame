@@ -31,9 +31,14 @@ Game::Game(const Window& window)
 	m_DeathTexture{ new Texture("YOU CRASHED", "Seedymoteldemo-LZl4.otf", 230, Color4f{0.9f, 0.27f, 0.55f, 1.f}) },
 	m_PressRTexture{ new Texture("Press R to RESTART", "Seedymoteldemo-LZl4.otf", 80, Color4f{1,1,1,1.f}) },
 	m_ScoreTextSize{ 60 },
-	m_GoalTutorial{ new Texture("Reach 400 km/h", "game over.ttf", 120, Color4f{1,1,1,1.f}) },
+	m_GoalTutorial{ new Texture("Reach 400 km/h", "game over.ttf", 140, Color4f{1,1,1,1.f}) },
 	m_DrawGoalTutorial{ true },
-	m_PauseTutorial{ new Texture("haha","game over.ttf", 60, Color4f{1,1,1,1.f}) },
+	m_PauseTutorialText1{ new Texture("power up","game over.ttf", 60, Color4f{1,1,1,1.f}) },
+	m_PausePowerTutorialTexture{ new Texture("PowerUp_Tutorial.png") },
+	m_TipText1{ new Texture("tip: ", "game over.ttf", 60, Color4f{1,1,1,1.f}) },
+	m_TipText2{ new Texture("Some power ups can heal you", "game over.ttf", 40, Color4f{1,1,1,1.f}) },
+	m_PausePressRTo{ new Texture("Press R to", "game over.ttf", 60, Color4f{1,1,1,1.f}) },
+	m_PauseRestart{ new Texture("Restart", "game over.ttf", 60, Color4f{1,1,1,1.f}) },
 	m_Paused{ false },
 	m_GameWon{ false }
 {
@@ -113,8 +118,19 @@ void Game::Cleanup()
 
 	delete m_GoalTutorial;
 	m_GoalTutorial = nullptr;
-	delete m_PauseTutorial;
-	m_PauseTutorial = nullptr;
+	delete m_PauseTutorialText1;
+	m_PauseTutorialText1 = nullptr;
+
+	delete m_PausePowerTutorialTexture;
+	m_PausePowerTutorialTexture = nullptr;
+	delete m_TipText1;
+	m_TipText1 = nullptr;
+	delete m_TipText2;
+	m_TipText2 = nullptr;
+	delete m_PausePressRTo;
+	m_PausePressRTo = nullptr;
+	delete m_PauseRestart;
+	m_PauseRestart = nullptr;
 
 	m_SmallLines.clear();
 }
@@ -276,6 +292,11 @@ void Game::Draw( ) const
 	else if (m_Paused)
 	{
 		m_Pause->Draw(Vector2f{ GetViewPort().width / 4.5f, 50.f});
+		m_PausePowerTutorialTexture->Draw(Vector2f{ 0.f, GetViewPort().height * 0.25f });
+		m_PauseTutorialText1->Draw(Vector2f{ GetViewPort().width / 40, GetViewPort().height * 0.15f });
+
+		m_PausePressRTo->Draw(Vector2f{ GetViewPort().width * 0.41f, GetViewPort().height * 0.85f });
+		m_PauseRestart->Draw(Vector2f{ GetViewPort().width * 0.43f, GetViewPort().height * 0.75f });
 	}
 
 	m_Score->Draw(Vector2f{ GetViewPort().width - m_ScoreTextSize * 3, GetViewPort().height - m_ScoreTextSize });
@@ -291,7 +312,9 @@ void Game::Draw( ) const
 
 	if (m_DrawGoalTutorial)
 	{
-		m_GoalTutorial->Draw(Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 });
+		m_GoalTutorial->Draw(Vector2f{ GetViewPort().width / 6.1f, GetViewPort().height / 2 });
+		m_TipText1->Draw(Vector2f{ GetViewPort().width / 2.1f, GetViewPort().height / 2.7f });
+		m_TipText2->Draw(Vector2f{ GetViewPort().width / 3.2f, GetViewPort().height / 3.5f });
 	}
 }
 
@@ -377,4 +400,5 @@ void Game::Restart()
 		m_Lanes[i].ClearLane();
 	}
 	m_PowerUpManager.ClearPowerUps();
+	m_GameWon = false;
 }

@@ -60,8 +60,14 @@ private:
 	Texture* m_Win;
 	const Texture* m_GoalTutorial;
 	bool m_DrawGoalTutorial;
+
+	const Texture* m_PausePowerTutorialTexture;
 	
-	const Texture* m_PauseTutorial;
+	const Texture* m_PauseTutorialText1;
+	const Texture* m_TipText1;
+	const Texture* m_TipText2;
+	const Texture* m_PausePressRTo;
+	const Texture* m_PauseRestart;
 	
 	bool m_Paused;
 	bool m_GameWon;

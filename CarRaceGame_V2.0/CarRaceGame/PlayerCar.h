@@ -17,7 +17,7 @@ public:
 
 	void SetSize(float index);
 	void SetInvincibility();
-	void SetUnbreakable(bool status);
+	void SetLifeSteal(bool status);
 
 	bool IsUnreakable() const;
 

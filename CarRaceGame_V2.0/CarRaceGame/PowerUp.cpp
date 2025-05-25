@@ -68,7 +68,7 @@ void PowerUp::AffectPlayer(float elapsedSec, PlayerCar& player, float& parallaxS
 			break;
 		case 2: // break cars
 			parallaxSpeed -= 0.03f * elapsedSec;
-			player.SetUnbreakable(true);
+			player.SetLifeSteal(true);
 			break;
 		}
 	}
@@ -80,7 +80,7 @@ void PowerUp::AffectPlayer(float elapsedSec, PlayerCar& player, float& parallaxS
 		}
 		else if (m_PowerUpIndex == 2)
 		{
-			player.SetUnbreakable(false);
+			player.SetLifeSteal(false);
 		}
 		else if (m_PowerUpIndex == 3)
 		{
