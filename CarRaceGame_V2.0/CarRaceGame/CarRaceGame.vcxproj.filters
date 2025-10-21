@@ -39,10 +39,7 @@
     <ClCompile Include="PowerUpManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScoreCalculator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Level.cpp">
+    <ClCompile Include="SpeedCalculator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,10 +65,7 @@
     <ClInclude Include="PowerUpManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScoreCalculator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Level.h">
+    <ClInclude Include="SpeedCalculator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

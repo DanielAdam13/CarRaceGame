@@ -3,9 +3,11 @@
 #include "utils.h"
 #include "Texture.h"
 #include "PowerUp.h"
+#include "SoundEffect.h"
 
 PlayerCar::PlayerCar(const Vector2f& pos, const float width, const float height, const Color4f& color, float screenWidth, float screenHeight,
-	const Texture* smallStatusText, const Texture* unbreakableStatusText, const Texture* invincibilityStatusText, const Texture* healText)
+	const Texture* smallStatusText, const Texture* unbreakableStatusText, const Texture* invincibilityStatusText, const Texture* healText, const Texture* stopwatchText,
+	SoundEffect* healSFX, SoundEffect* crashSFX)
 	: Car::Car(pos, width, height),
 	m_Hp{ 3 },
 	m_Color{ color },
@@ -22,11 +24,16 @@ PlayerCar::PlayerCar(const Vector2f& pos, const float width, const float height,
 	m_PoweredUpInvincibility{ false },
 	m_LifeSteal{ false },
 	m_TookHeal{ false },
+	m_CarsFrozenFlag{ false },
 	m_InvincibilityText{ invincibilityStatusText },
 	m_SmallStatusText{ smallStatusText },
 	m_LifeStealStatusText{ unbreakableStatusText },
 	m_HealText{ healText },
-	m_DrawFlickeringStatus{ true }
+	m_StopwatchText{ stopwatchText },
+	m_DrawFlickeringStatus{ true },
+	m_TimesHit{ 0 },
+	m_CrashSFX{ crashSFX },
+	m_HealSFX{ healSFX }
 {
 }
 
@@ -219,7 +226,9 @@ void PlayerCar::Hit()
 	if (!m_TakeDamage && !m_PoweredUpInvincibility)
 	{
 		m_Hp--;
+		m_CrashSFX->Play(0);
 		m_TakeDamage = true;
+		m_TimesHit++;
 	}
 	
 	m_Hit = true;
@@ -264,6 +273,7 @@ int PlayerCar::GetHealth() const
 void PlayerCar::IncreaseHealth(int index)
 {
 	m_Hp += index;
+	m_HealSFX->Play(0);
 	m_TookHeal = true;
 }
 
@@ -285,6 +295,17 @@ void PlayerCar::RestartPlayer(const Vector2f& pos)
 	SetSize(1.f);
 	m_PoweredUpInvincibility = false;
 	m_Invicibility = false;
+	m_TimesHit = 0;
+}
+
+void PlayerCar::CarsFrozen(bool status)
+{
+	m_CarsFrozenFlag = status;
+}
+
+int PlayerCar::TimesHit() const
+{
+	return m_TimesHit;
 }
 
 void PlayerCar::SetPosition(const Vector2f& pos)
@@ -346,6 +367,10 @@ void PlayerCar::DrawPowerUpStatuses(const Vector2f& pos) const
 		else if (m_TookHeal)
 		{
 			m_HealText->Draw(pos);
+		}
+		else if (m_CarsFrozenFlag)
+		{
+			m_StopwatchText->Draw(pos);
 		}
 		else if (m_Invicibility)
 		{

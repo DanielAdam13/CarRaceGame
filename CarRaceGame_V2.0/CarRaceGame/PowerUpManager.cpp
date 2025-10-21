@@ -3,18 +3,19 @@
 #include "PowerUp.h"
 #include "utils.h"
 #include "PlayerCar.h"
+#include "Texture.h"
+#include "SoundEffect.h"
 
-PowerUpManager::PowerUpManager()
-	:PowerUpManager::PowerUpManager({})
-{
-}
+int PowerUpManager::pickedPowers{ 0 };
 
-PowerUpManager::PowerUpManager(const std::vector<Vector2f>& laneStartPositions)
+PowerUpManager::PowerUpManager(const std::vector<Vector2f>& laneStartPositions, SoundEffect* pickup1, SoundEffect* pickup2)
 	:m_PowerUpsVector{},
 	m_SpawnAccuSec{ 0.f },
 	m_Cooldown{ 15.f },
 	m_StartPositions{ laneStartPositions },
-	m_CurrentFlickerStatus{ true }
+	m_CurrentFlickerStatus{ true },
+	m_PickUpSFX1{pickup1},
+	m_PickUpSFX2{pickup2}
 {
 	m_StartPositions.reserve(5);
 	m_PowerUpsVector.reserve(10);
@@ -56,9 +57,10 @@ void PowerUpManager::UpdatePowerUps(float elapsedSec, float& parallaxSpeed, Play
 
 	if (m_SpawnAccuSec >= m_Cooldown)
 	{
-		const int randNr{ rand() % 4 };
+		const int randNr{ rand() % 5 };
 		
-		m_PowerUpsVector.push_back(new PowerUp(randNr, m_StartPositions[randNr + 1], 20.f));
+		m_PowerUpsVector.push_back(new PowerUp(randNr, m_StartPositions[randNr], 20.f));
+
 		m_SpawnAccuSec -= m_Cooldown;
 	}
 
@@ -70,6 +72,21 @@ void PowerUpManager::UpdatePowerUps(float elapsedSec, float& parallaxSpeed, Play
 			{
 				if (utils::IsOverlapping(playerCar.GetBounds(), m_PowerUpsVector[i]->GetBounds()))
 				{
+					if (m_PowerUpsVector[i]->GetCurrentState() == PowerUp::State::moving)
+					{
+						int randSFX{ rand() % 2 };
+
+						if (randSFX == 0)
+						{
+							m_PickUpSFX1->Play(0);
+						}
+						else
+						{
+							m_PickUpSFX2->Play(0);
+						}
+
+						pickedPowers++;
+					}
 					m_PowerUpsVector[i]->AbsorbPowerUp();
 				}
 

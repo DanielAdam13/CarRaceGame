@@ -4,8 +4,10 @@
 #include "Lane.h"
 #include "PlayerCar.h"
 class Texture;
-#include "ScoreCalculator.h"
+#include "SpeedCalculator.h"
 #include "PowerUpManager.h"
+#include "SoundStream.h"
+#include "SoundEffect.h"
 
 class Game : public BaseGame
 {
@@ -30,10 +32,23 @@ public:
 
 private:
 	// variables
-	ScoreCalculator m_ScoreCalculator;
-	
+	SpeedCalculator m_SpeedCalculator;
+
+	SoundStream* m_SoundTrack;
+	SoundEffect* m_CrashSFX;
+	SoundEffect* m_PowerPickup1SFX;
+	SoundEffect* m_PowerPickup2SFX;
+	SoundEffect* m_PowerPickup3SFX;
+
+	SoundEffect* m_GameWinSFX;
+	SoundEffect* m_GameOverSFX;
+
+	const Texture* m_RedHeart;
+	const Texture* m_Lifesteal;
+
 	std::vector<Lane> m_Lanes;
 	PowerUpManager m_PowerUpManager;
+
 
 	const int m_LaneNr;
 	const float m_BorderLineOffset;
@@ -45,6 +60,7 @@ private:
 	const Texture* m_SmallStatusText;
 	const Texture* m_LifeStealStatusText;
 	const Texture* m_HealText;
+	const Texture* m_StopwatchText;
 	PlayerCar m_PlayerCar;
 
 	std::vector<Rectf> m_SmallLines;
@@ -74,10 +90,20 @@ private:
 
 	int m_ScoreTextSize;
 
+	float m_GameplayTimer;
+
+	Texture* m_RankLetter;
+
+	bool m_CanCalculateRank;
+
+	
+	static bool CanPlayGameOverSFX;
+
 	// FUNCTIONS
 	void Initialize();
 	void Cleanup( );
 	void ClearBackground( ) const;
 
+	int CalculateRank() const;
 	void Restart();
 };

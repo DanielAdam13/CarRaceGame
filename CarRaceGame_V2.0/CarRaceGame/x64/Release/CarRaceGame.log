@@ -1,0 +1,9 @@
+﻿  Game.cpp
+LINK : error C4727: PCH named d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\midnightmotorist.pch with same timestamp found in d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\main.obj and d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\lane.obj.  Using first PCH.
+LINK : error C4727: PCH named d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\midnightmotorist.pch with same timestamp found in d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\playercar.obj and d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\pch.obj.  Using first PCH.
+LINK : error C4727: PCH named d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\midnightmotorist.pch with same timestamp found in d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\powerup.obj and d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\pch.obj.  Using first PCH.
+LINK : error C4727: PCH named d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\midnightmotorist.pch with same timestamp found in d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\speedcalculator.obj and d:\github\carracegame\carracegame_v2.0\carracegame\x64\release\powerupmanager.obj.  Using first PCH.
+  Generating code
+  Previous IOBJ not found, fall back to full compilation.
+  All 564 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+LINK : fatal error LNK1257: code generation failed

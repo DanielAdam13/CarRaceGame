@@ -14,8 +14,10 @@ public:
 
 	Vector2f GetDrawPosition() const;
 
-	static int m_CarsBroken;
+	static int carsBrokenNr;
 	void ClearLane();
+
+	static bool freezeCarSpawn;
 
 private:
 	const Vector2f m_LanePosition;
@@ -29,6 +31,6 @@ private:
 	float m_RandomSec;
 	
 	float m_AccuSec;
-
+	
 };
 

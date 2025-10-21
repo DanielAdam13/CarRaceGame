@@ -5,11 +5,16 @@
 #include "utils.h"
 #include "Texture.h"
 #include "PowerUp.h"
+#include "SoundStream.h"
+#include "SoundEffect.h"
+
+bool Game::CanPlayGameOverSFX{ true };
 
 Game::Game(const Window& window)
 	:BaseGame{ window },
-	m_ScoreCalculator{},
+	m_SpeedCalculator{},
 	m_Lanes{},
+	m_PowerUpManager{ {}, m_PowerPickup1SFX, m_PowerPickup2SFX },
 	m_LaneNr{ 5 },
 	m_BorderLineOffset{ GetViewPort().height / 40 },
 	m_LaneHeight{ (GetViewPort().height - 2 * m_BorderLineOffset) / m_LaneNr },
@@ -18,15 +23,16 @@ Game::Game(const Window& window)
 	m_SmallStatusText{ new Texture("Small", "Seedymoteldemo-LZl4.otf", 60, Color4f{1,0,1,0.7f}) },
 	m_LifeStealStatusText{ new Texture("Lifesteal", "Seedymoteldemo-LZl4.otf", 60, Color4f{1,0,1,0.7f}) },
 	m_HealText{ new Texture("Health", "Seedymoteldemo-LZl4.otf", 60, Color4f{1,0,1,0.7f}) },
+	m_StopwatchText{ new Texture("Stopwatch", "Seedymoteldemo-LZl4.otf", 60, Color4f{1,0,1,0.7f}) },
 	m_PlayerCar{ Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 }, m_LaneHeight * 0.95f, 
 		m_LaneHeight * 0.55f, Color4f{ 0.5f, 0.12f, 0.95f, 1 }, GetViewPort().width, GetViewPort().height,
-			m_SmallStatusText, m_LifeStealStatusText, m_InvinicibilityText, m_HealText },
+			m_SmallStatusText, m_LifeStealStatusText, m_InvinicibilityText, m_HealText, m_StopwatchText, m_PowerPickup3SFX, m_CrashSFX },
 	m_SmallLines{},
 	m_ParallaxSpeed{ 1.f },
 	m_SpeedKmh{ int(m_ParallaxSpeed * 40) },
 	m_Pause{ new Texture("PAUSE", "Seedymoteldemo-LZl4.otf", 300, Color4f{1,0,1,1}) },
-	m_Score{ new Texture(std::to_string(m_ScoreCalculator.GetScore()), "game over.ttf", 60, Color4f{1,1,1,0.6f})},
-	m_Win{ new Texture("YOU WON", "Seedymoteldemo-LZl4.otf", 300, Color4f{1,0,1,1}) },
+	m_Score{ new Texture(std::to_string(m_SpeedCalculator.GetSpeed()), "game over.ttf", 60, Color4f{1,1,1,0.6f})},
+	m_Win{ new Texture("YOU WON", "game over.ttf", 350, Color4f{1,1,1,1}) },
 	m_Kmh{ new Texture(" km/h", "game over.ttf", 30, Color4f{1,1,1,0.6f}) },
 	m_DeathTexture{ new Texture("YOU CRASHED", "Seedymoteldemo-LZl4.otf", 230, Color4f{0.9f, 0.27f, 0.55f, 1.f}) },
 	m_PressRTexture{ new Texture("Press R to RESTART", "Seedymoteldemo-LZl4.otf", 80, Color4f{1,1,1,1.f}) },
@@ -39,8 +45,20 @@ Game::Game(const Window& window)
 	m_TipText2{ new Texture("Some power ups can heal you", "game over.ttf", 40, Color4f{1,1,1,1.f}) },
 	m_PausePressRTo{ new Texture("Press R to", "game over.ttf", 60, Color4f{1,1,1,1.f}) },
 	m_PauseRestart{ new Texture("Restart", "game over.ttf", 60, Color4f{1,1,1,1.f}) },
+	m_RedHeart{ new Texture("Red_Heart.png") },
+	m_Lifesteal{ new Texture("Lifesteal.png") },
 	m_Paused{ false },
-	m_GameWon{ false }
+	m_GameWon{ false },
+	m_GameplayTimer{ 0.f },
+	m_RankLetter{},
+	m_CanCalculateRank{ true },
+	m_SoundTrack{ new SoundStream("Sounds/retro-wave-style-track.mp3") },
+	m_CrashSFX{new SoundEffect("Sounds/retro-explode-2.mp3")},
+	m_PowerPickup1SFX{ new SoundEffect("Sounds/retro-coin-1.mp3") },
+	m_PowerPickup2SFX{ new SoundEffect("Sounds/retro-jump-1.mp3") },
+	m_PowerPickup3SFX{ new SoundEffect("Sounds/coin-collect-retro.mp3") },
+	m_GameWinSFX{ new SoundEffect("Sounds/game_won.mp3") },
+	m_GameOverSFX{ new SoundEffect("Sounds/game_over.mp3") }
 {
 	Initialize();
 }
@@ -84,10 +102,13 @@ void Game::Initialize( )
 	}
 
 	
-	m_PowerUpManager = PowerUpManager(laneStartPositions);
+	m_PowerUpManager = PowerUpManager(laneStartPositions, m_PowerPickup1SFX, m_PowerPickup2SFX);
 
 	m_SmallLines.reserve(20);
-	
+
+	m_SoundTrack->Play(true);
+	m_SoundTrack->SetVolume(64);
+
 }
 
 void Game::Cleanup()
@@ -107,6 +128,9 @@ void Game::Cleanup()
 	m_LifeStealStatusText = nullptr;
 	delete m_HealText;
 	m_HealText = nullptr;
+	delete m_StopwatchText;
+	m_StopwatchText = nullptr;
+
 	delete m_Kmh;
 	m_Kmh = nullptr;
 	delete m_DeathTexture;
@@ -132,7 +156,32 @@ void Game::Cleanup()
 	delete m_PauseRestart;
 	m_PauseRestart = nullptr;
 
+	delete m_RedHeart;
+	m_RedHeart = nullptr;
+	delete m_Lifesteal;
+	m_Lifesteal = nullptr;
+
+	delete m_RankLetter;
+	m_RankLetter = nullptr;
+
 	m_SmallLines.clear();
+
+	delete m_SoundTrack;
+	m_SoundTrack = nullptr;
+	delete m_CrashSFX;
+	m_CrashSFX = nullptr;
+	delete m_PowerPickup1SFX;
+	m_PowerPickup1SFX = nullptr;
+	delete m_PowerPickup2SFX;
+	m_PowerPickup2SFX = nullptr;
+	delete m_PowerPickup3SFX;
+	m_PowerPickup3SFX = nullptr;
+	delete m_GameWinSFX;
+	m_GameWinSFX = nullptr;
+	delete m_GameOverSFX;
+	m_GameOverSFX = nullptr;
+	delete m_CrashSFX;
+	m_CrashSFX = nullptr;
 }
 
 void Game::Update( float elapsedSec )
@@ -142,30 +191,32 @@ void Game::Update( float elapsedSec )
 	
 	if (!m_Paused)
 	{
+		m_GameplayTimer += elapsedSec;
+		
 		if (!m_GameWon && m_PlayerCar.GetHealth() > 0)
 		{
 			for (size_t i{}; i < m_Lanes.size(); ++i)
 			{
 				m_Lanes[i].HandleCars(elapsedSec, m_PlayerCar, m_ParallaxSpeed);
 			}
-			m_ScoreCalculator.Update(elapsedSec);
+			m_SpeedCalculator.Update(elapsedSec);
 
 
 			if (m_SpeedKmh < 100)
 			{
-				m_ParallaxSpeed += 0.06f * elapsedSec;
+				m_ParallaxSpeed += 0.08f * elapsedSec;
 			}
 			else if (m_SpeedKmh >= 100 && m_SpeedKmh < 200)
 			{
-				m_ParallaxSpeed += 0.08f * elapsedSec;
+				m_ParallaxSpeed += 0.1f * elapsedSec;
 			}
 			else if (m_SpeedKmh >= 200 && m_SpeedKmh < 300)
 			{
-				m_ParallaxSpeed += 0.1f * elapsedSec;
+				m_ParallaxSpeed += 0.12f * elapsedSec;
 			}
 			else if (m_SpeedKmh >= 300 && m_SpeedKmh < 400)
 			{
-				m_ParallaxSpeed += 0.12f * elapsedSec;
+				m_ParallaxSpeed += 0.14f * elapsedSec;
 			}
 			else if (m_SpeedKmh >= 400)
 			{
@@ -190,13 +241,29 @@ void Game::Update( float elapsedSec )
 		}
 	}
 
+	static bool canPlayWinSFX{ true };
+
+	// MAIN GAME PROGRESS ACCUMULATOR
 	if (m_ParallaxSpeed >= 10.f)
 	{
 		m_ParallaxSpeed = 10.f;
 		m_GameWon = true;
+		if (canPlayWinSFX)
+		{
+			m_SoundTrack->Stop();
+			m_GameWinSFX->Play(0);
+			canPlayWinSFX = false;
+		}
+		
+	}
+	else
+	{
+		if (!canPlayWinSFX)
+		{
+			canPlayWinSFX = true;
+		}
 	}
 
-	
 
 	static float scoreAcc{ 0.f };
 	scoreAcc += elapsedSec;
@@ -230,10 +297,12 @@ void Game::Update( float elapsedSec )
 		scoreAcc -= 0.5f;
 	}
 
-	if (Lane::m_CarsBroken == 10)
+	if (Lane::carsBrokenNr == 6)
 	{
 		m_PlayerCar.IncreaseHealth(1);
-		Lane::m_CarsBroken -= 10;
+		Lane::carsBrokenNr -= 6;
+
+		m_PowerPickup3SFX->Play(0);
 	}
 
 	if (m_DrawGoalTutorial)
@@ -246,6 +315,36 @@ void Game::Update( float elapsedSec )
 			m_DrawGoalTutorial = false;
 			goalAcc -= 3.f;
 		}
+	}
+
+	if (m_GameWon && m_CanCalculateRank)
+	{
+		const int gameRank{ CalculateRank() };
+		std::string rankLetter{};
+
+		switch (gameRank)
+		{
+		case 5:
+			rankLetter = 'S';
+			break;
+		case 4:
+			rankLetter = 'A';
+			break;
+		case 3:
+			rankLetter = 'B';
+			break;
+		case 2:
+			rankLetter = 'C';
+			break;
+		case 1:
+		case 0:
+			rankLetter = 'D';
+			break;
+		}
+
+		m_RankLetter = new Texture(rankLetter, "Seedymoteldemo-LZl4.otf", 350, Color4f{ 1,1,1,1 });
+
+		m_CanCalculateRank = false;
 	}
 }
 
@@ -282,12 +381,23 @@ void Game::Draw( ) const
 
 	if (m_PlayerCar.GetHealth() <= 0)
 	{
+		if (CanPlayGameOverSFX)
+		{
+			m_SoundTrack->Stop();
+			m_GameOverSFX->Play(0);
+			CanPlayGameOverSFX = false;
+		}
+
 		m_DeathTexture->Draw(Vector2f{ GetViewPort().width / 21, GetViewPort().height / 3 });
 		m_PressRTexture->Draw(Vector2f{ GetViewPort().width / 3.6f, GetViewPort().height / 6 });
 	}
 	else if (m_GameWon)
 	{
-		m_Win->Draw(Vector2f{ GetViewPort().width / 10, 50.f });
+		m_RankLetter->Draw(Vector2f{ GetViewPort().width * 0.42f, -60.f });
+		m_Win->Draw(Vector2f{ GetViewPort().width * 0.02f, 280.f });
+
+		m_Score->Draw(Vector2f{ GetViewPort().width - m_ScoreTextSize * 3, GetViewPort().height * 0.5f - m_ScoreTextSize });
+		m_Kmh->Draw(Vector2f{ GetViewPort().width - m_ScoreTextSize * 3 + m_Score->GetWidth(), GetViewPort().height * 0.55f - m_ScoreTextSize });
 	}
 	else if (m_Paused)
 	{
@@ -299,16 +409,22 @@ void Game::Draw( ) const
 		m_PauseRestart->Draw(Vector2f{ GetViewPort().width * 0.43f, GetViewPort().height * 0.75f });
 	}
 
-	m_Score->Draw(Vector2f{ GetViewPort().width - m_ScoreTextSize * 3, GetViewPort().height - m_ScoreTextSize });
-	m_Kmh->Draw(Vector2f{ GetViewPort().width - m_ScoreTextSize * 3 + m_Score->GetWidth(), GetViewPort().height - m_ScoreTextSize });
+	
 
-	for (int i{}; i < m_PlayerCar.GetHealth(); ++i)
+	if (!m_GameWon)
 	{
-		m_PurpleHeart->Draw(Rectf{ GetViewPort().width / 2 - (m_PlayerCar.GetHealth() * m_PurpleHeart->GetWidth() / 2 + (m_PlayerCar.GetHealth() - 1) * m_PurpleHeart->GetWidth() * 2) / 2 +
-			i * (m_PurpleHeart->GetWidth() * 2 * 1.5f),
-			GetViewPort().height / 12,
-			m_PurpleHeart->GetWidth() * 2, m_PurpleHeart->GetHeight() * 2});
+		m_Score->Draw(Vector2f{ GetViewPort().width - m_ScoreTextSize * 3, GetViewPort().height - m_ScoreTextSize });
+		m_Kmh->Draw(Vector2f{ GetViewPort().width - m_ScoreTextSize * 3 + m_Score->GetWidth(), GetViewPort().height - m_ScoreTextSize });
+
+		for (int i{}; i < m_PlayerCar.GetHealth(); ++i)
+		{
+			m_PurpleHeart->Draw(Rectf{ GetViewPort().width / 2 - (m_PlayerCar.GetHealth() * m_PurpleHeart->GetWidth() / 2 + (m_PlayerCar.GetHealth() - 1) * m_PurpleHeart->GetWidth() * 2) / 2 +
+				i * (m_PurpleHeart->GetWidth() * 2 * 1.5f),
+				GetViewPort().height / 12,
+				m_PurpleHeart->GetWidth() * 2, m_PurpleHeart->GetHeight() * 2 });
+		}
 	}
+	
 
 	if (m_DrawGoalTutorial)
 	{
@@ -339,6 +455,9 @@ void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 		break;
 	case SDLK_r:
 		Restart();
+		break;
+	case SDLK_m:
+		m_SoundTrack->SetVolume(5);
 		break;
 	}
 }
@@ -389,6 +508,44 @@ void Game::ClearBackground( ) const
 	glClear( GL_COLOR_BUFFER_BIT );
 }
 
+int Game::CalculateRank() const // from D to A (0 to 4 ----> 4 being A) + Bonus S for scorePoints == 5
+{
+	int scorePoints{ 4 };
+
+	if (m_PlayerCar.TimesHit() >= 7)
+	{
+		scorePoints -= 3;
+	}
+	else if (m_PlayerCar.TimesHit() >= 5)
+	{
+		scorePoints -= 2;
+	}
+	else if (m_PlayerCar.TimesHit() >= 3)
+	{
+		scorePoints -= 1;
+	}
+	
+	if(m_PlayerCar.TimesHit() == 0 && m_PowerUpManager.pickedPowers <= 3) // S RANK
+	{
+		scorePoints = 5;
+	}
+	else
+	{
+		if (m_PlayerCar.GetHealth() >= 5)
+		{
+			scorePoints += 1;
+		}
+
+		if (scorePoints > 4)
+		{
+			scorePoints = 4;
+		}
+		
+	}
+
+	return scorePoints;
+}
+
 void Game::Restart()
 {
 	m_PlayerCar.RestartPlayer(Vector2f{ GetViewPort().width / 5, GetViewPort().height / 2 });
@@ -401,4 +558,11 @@ void Game::Restart()
 	}
 	m_PowerUpManager.ClearPowerUps();
 	m_GameWon = false;
+	m_Paused = false;
+	m_GameplayTimer = 0.f;
+	PowerUpManager::pickedPowers = 0;
+	m_CanCalculateRank = true;
+	m_SoundTrack->Play(true);
+	m_SoundTrack->SetVolume(64);
+	CanPlayGameOverSFX = true;
 }

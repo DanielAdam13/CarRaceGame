@@ -3,6 +3,9 @@
 #include "PlayerCar.h"
 #include "utils.h"
 #include <iostream>
+#include "Texture.h"
+#include "Car.h"
+#include "Lane.h"
 
 PowerUp::PowerUp(int index, const Vector2f& pos, float size)
 	:m_PowerUpIndex{ index },
@@ -20,20 +23,27 @@ PowerUp::PowerUp(int index, const Vector2f& pos, float size)
 	{
 	case 0: // invincibility
 		m_Title = "INVINCIBLE";
-		m_PowerUpDuration = 6.f;
+		m_PowerUpDuration = 5.f;
+		m_Color = Color4f{ 0.f, 0.8f, 0.9f, 1 };
 		break;
 	case 1: // small
 		m_Title = "SMALL";
-		m_PowerUpDuration = 10.f;
+		m_PowerUpDuration = 7.f;
 		break;
 	case 2: // break cars
 		m_Title = "LIFESTEAL";
-		m_PowerUpDuration = 10.f;
+		m_PowerUpDuration = 8.f;
+		m_Color = Color4f{ 1,0,0,1 };
 		break;
 	case 3:
 		m_Title = "HEALTH";
 		m_PowerUpDuration = 1.f;
+		m_Color = Color4f{ 0.8f, 0, 0.9f, 1 };
 		break;
+	case 4:
+		m_Title = "STOPWATCH";
+		m_PowerUpDuration = 4.f;
+		m_Color = Color4f{ 1,1,1,1 };
 	}
 
 	//std::cout << m_Title + " powerup CREATED" << std::endl;
@@ -70,6 +80,11 @@ void PowerUp::AffectPlayer(float elapsedSec, PlayerCar& player, float& parallaxS
 			parallaxSpeed -= 0.03f * elapsedSec;
 			player.SetLifeSteal(true);
 			break;
+		case 4: // freeze cars
+			player.CarsFrozen(true);
+			Car::stopCars = true;
+			Lane::freezeCarSpawn = true;
+			break;
 		}
 	}
 	else
@@ -86,6 +101,12 @@ void PowerUp::AffectPlayer(float elapsedSec, PlayerCar& player, float& parallaxS
 		{
 			m_CanHeal = true;
 		}
+		else if (m_PowerUpIndex == 4)
+		{
+			player.CarsFrozen(false);
+			Car::stopCars = false;
+			Lane::freezeCarSpawn = false;
+		}
 		m_DeleteMarker = true;
 	}
 }
@@ -94,6 +115,11 @@ void PowerUp::Draw() const
 {
 	utils::SetColor(m_Color);
 	utils::FillEllipse(m_Position, m_Size, m_Size);
+
+	
+	/*m_DisplayTexture->Draw(Rectf{ m_Position.x, m_Position.y - m_DisplayTexture->GetHeight() * m_ScaleIdx / 2, 
+		m_DisplayTexture->GetWidth() * m_ScaleIdx, m_DisplayTexture->GetHeight() * m_ScaleIdx});*/
+	
 
 	// Hitbox
 	//utils::SetColor(Color4f{ 1,0,0,1 });
@@ -113,6 +139,7 @@ std::string PowerUp::GetTitle() const
 void PowerUp::AbsorbPowerUp()
 {
 	m_CurrentState = State::taken;
+	
 	//std::cout << m_Title + " pickup TAKEN" << std::endl;
 }
 

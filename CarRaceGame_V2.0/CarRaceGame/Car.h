@@ -1,4 +1,6 @@
 #pragma once
+class PowerUp;
+
 class Car
 {
 public:
@@ -10,6 +12,8 @@ public:
 	virtual Rectf GetBounds() const;
 	virtual Rectf GetHitbox() const;
 
+	static bool stopCars;
+
 protected:
 	
 	Vector2f m_Position;
@@ -18,7 +22,8 @@ protected:
 
 	const float m_Width;
 	const float m_Height;
-private:
 
+private:
+	
 };
 

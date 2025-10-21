@@ -2,6 +2,8 @@
 #include "Car.h"
 #include "utils.h"
 
+bool Car::stopCars{ false };
+
 Car::Car(const Vector2f& pos, const float width, const float height)
 	:m_Position{ pos },
 	m_Speed{},
@@ -50,11 +52,20 @@ void Car::Draw(const Vector2f& pos) const
 
 void Car::Update(float elapsedSec, float& parallaxSpeed)
 {
-	float m_CurrentSpeed{ m_Speed * parallaxSpeed / 3.7f };
-
-	if (parallaxSpeed <= 1.5f)
+	float m_CurrentSpeed{ };
+	
+	if (!stopCars)
 	{
-		m_CurrentSpeed = m_Speed * 1.5f / 3.7f;
+		m_CurrentSpeed = m_Speed * parallaxSpeed / 3.7f;
+
+		if (parallaxSpeed <= 1.5f)
+		{
+			m_CurrentSpeed = m_Speed * 1.5f / 3.7f;
+		}
+	}
+	else
+	{
+		m_CurrentSpeed = 0.f;
 	}
 
 	m_Position.x -= m_CurrentSpeed * elapsedSec;

@@ -4,7 +4,8 @@
 #include "PlayerCar.h"
 #include "utils.h"
 
-int Lane::m_CarsBroken{ 0 };
+int Lane::carsBrokenNr{ 0 };
+bool Lane::freezeCarSpawn{ false };
 
 Lane::Lane(const Vector2f& lanePosition, float carWidth, float carHeight, float minCarSpawnCooldown)
 	:m_LanePosition{ lanePosition },
@@ -41,22 +42,27 @@ void Lane::Draw() const
 
 void Lane::HandleCars(float elapsedSec, PlayerCar& player, float& parallaxSpeed)
 {
-	m_AccuSec += elapsedSec;
-
-	if (m_AccuSec > m_RandomSec)
+	if (!freezeCarSpawn)
 	{
-		int randOffset{ rand() % 400 + 100 };
-		m_Cars.push_back(new Car(Vector2f{ m_LanePosition.x + randOffset, m_LanePosition.y - m_CarHeight / 2 }, m_CarWidth, m_CarHeight));
+		m_AccuSec += elapsedSec;
 
-		m_AccuSec -= m_RandomSec;
-
-		m_RandomSec = float((rand() % 20) / 10) + m_MinCarSpawnCooldown;
-
-		if (parallaxSpeed <= 1.5f)
+		if (m_AccuSec >= m_RandomSec)
 		{
-			m_RandomSec += 2.f;
+			int randOffset{ rand() % 400 + 100 };
+			m_Cars.push_back(new Car(Vector2f{ m_LanePosition.x + randOffset, m_LanePosition.y - m_CarHeight / 2 }, m_CarWidth, m_CarHeight));
+
+			m_AccuSec -= m_RandomSec;
+
+			m_RandomSec = float((rand() % 25) / 10) + m_MinCarSpawnCooldown;
+
+
+			if (parallaxSpeed <= 1.5f)
+			{
+				m_RandomSec += 2.f;
+			}
 		}
 	}
+	
 
 	for (size_t i{}; i < m_Cars.size(); ++i)
 	{
@@ -68,7 +74,7 @@ void Lane::HandleCars(float elapsedSec, PlayerCar& player, float& parallaxSpeed)
 				{
 					if (player.IsUnreakable())
 					{
-						m_CarsBroken++;
+						carsBrokenNr++;
 						delete m_Cars[i];
 						m_Cars[i] = nullptr;
 					}

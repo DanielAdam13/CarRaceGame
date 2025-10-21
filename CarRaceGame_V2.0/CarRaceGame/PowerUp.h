@@ -1,5 +1,6 @@
 #pragma once
 #include "PlayerCar.h"
+class Texture;
 
 class PowerUp
 {
@@ -31,7 +32,7 @@ private:
 
 	const int m_PowerUpIndex;
 	Vector2f m_Position;
-	float m_Size;
+	const float m_Size;
 	Color4f m_Color;
 
 	std::string m_Title;
